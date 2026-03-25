@@ -1,6 +1,6 @@
 ## load.nim -- End-to-end: open spreadsheet -> parse tables -> compile rules.
 {.experimental: "strict_funcs".}
-import lattice, parse, convert
+import basis/code/choice, parse, convert
 
 type
   LoadResult* = object
@@ -9,10 +9,10 @@ type
     rule_count*: int
 
 proc load_decision_table*(rows: seq[SheetRow], name: string = "table"
-                         ): Result[LoadResult, BridgeError] =
+                         ): Choice[LoadResult] =
   let dt = parse_decision_table(rows, name)
-  if dt.is_bad: return Result[LoadResult, BridgeError].bad(dt.err)
+  if dt.is_bad: return bad[LoadResult](dt.err)
   let rules = convert_table(dt.val)
-  if rules.is_bad: return Result[LoadResult, BridgeError].bad(rules.err)
-  Result[LoadResult, BridgeError].good(
+  if rules.is_bad: return bad[LoadResult](rules.err)
+  good(
     LoadResult(table_name: name, rules: rules.val, rule_count: rules.val.len))

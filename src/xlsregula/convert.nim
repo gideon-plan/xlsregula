@@ -1,7 +1,7 @@
 ## convert.nim -- Convert parsed table rows into regula Rule IR.
 {.experimental: "strict_funcs".}
 import std/strutils
-import lattice, parse
+import basis/code/choice, parse
 
 type
   RuleCondition* = object
@@ -33,7 +33,7 @@ proc parse_condition(header: string, cell: string): RuleCondition =
   else:
     RuleCondition(field: header, op: "==", value: trimmed)
 
-proc convert_table*(dt: DecisionTable): Result[seq[ConvertedRule], BridgeError] =
+proc convert_table*(dt: DecisionTable): Choice[seq[ConvertedRule]] =
   var rules: seq[ConvertedRule]
   for row_idx, row in dt.rows:
     var rule = ConvertedRule(name: dt.name & "_rule_" & $row_idx)
@@ -45,4 +45,4 @@ proc convert_table*(dt: DecisionTable): Result[seq[ConvertedRule], BridgeError] 
         rule.actions.add(RuleAction(field: dt.headers[ai], value: row[ai].strip()))
     if rule.actions.len > 0:
       rules.add(rule)
-  Result[seq[ConvertedRule], BridgeError].good(rules)
+  good(rules)
